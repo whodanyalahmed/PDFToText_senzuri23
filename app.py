@@ -1,5 +1,4 @@
 # importing required modules
-from typing import NewType
 import PyPDF2
 import shutil
 import os
