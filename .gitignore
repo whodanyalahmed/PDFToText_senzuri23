@@ -1,2 +1,5 @@
 *.pdf
 done
+test.py
+~$data.xlsx
+__pycache__

@@ -2,9 +2,10 @@
 import PyPDF2
 import shutil
 import os
+from openpyxl import load_workbook
 
 
-def getNameFromPDF(filename, path):
+def NamefromPDF(filename, path):
 
     # creating a pdf file object
     pdfFileObj = open(path+filename, 'rb')
@@ -49,9 +50,33 @@ def moveFile(filename, path):
     print('success : successfully moved ' + newName + ' file to done folder')
 
 
+def get_column_values(sheet, column):
+    values = []
+    for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=column, max_col=column):
+        for cell in row:
+            values.append(cell.value)
+    return values
+# set column value
+
+
 if __name__ == '__main__':
+    source_file = load_workbook('data.xlsx', data_only=True)
+    sheet = source_file["Sheet2"]
+
     filename = "invoice.pdf"
     path = "C://Users//Daniyal\Downloads//"
-    txt = getNameFromPDF(filename, path)
+
+    # loop on sheet
+    txt = NamefromPDF(filename, path)
+    for index, row in enumerate(sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=3, max_col=3)):
+        for cell in row:
+            num = 'C'+str(index+2)
+            print(index, sheet[num].value, sheet['D'+str(index+2)].value)
+            # if index == 86:
+            #     txt = NamefromPDF(filename, path)
+            #     print(txt)
+            #     sheet['D'+str(index+2)].value = txt
+    # iterate on pair keys and values with index
+    source_file.save('data.xlsx')
     print(txt)
     moveFile(filename, path)
