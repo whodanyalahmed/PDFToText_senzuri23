@@ -3,6 +3,67 @@ import PyPDF2
 import shutil
 import os
 from openpyxl import load_workbook
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+import time
+import sys
+import os
+cur_path = sys.path[0]
+
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.dirname(__file__)
+    return os.path.join(base_path, relative_path)
+
+
+driverPath = resource_path('I://clients//chromedriver.exe')
+# driver = webdriver.Chrome(driverPath)
+
+# driver.maximize_window()
+
+# driver.implicitly_wait(10)
+
+# Login
+
+
+def login():
+    try:
+        driver.find_element_by_id(
+            "ctl00_ctl00__dh_UserName").send_keys("Dlaing")
+        time.sleep(1)
+
+        driver.find_element_by_id(
+            "ctl00_ctl00__dh_Password").send_keys("Hirosushi1")
+        time.sleep(1)
+        driver.find_element_by_xpath(
+            "//html/body/form/div[4]/div[1]/span/div[1]/div[2]/div/span/fieldset/span[3]/input").click()
+        time.sleep(1)
+    except Exception as e:
+        print("error: something went wrong while logging in..." + str(e))
+
+        time.sleep(2)
+
+
+def go_to_page(url):
+    try:
+        driver.get(url)
+        time.sleep(2)
+    except Exception as e:
+        print("error: something went wrong while going to page..." + str(e))
+
+
+def InputKey(key):
+    try:
+        inputTxt = driver.find_element_by_id(
+            "ctl00_ctl00_c_c__txtInvoiceRef__t")
+        inputTxt.send_keys(key)
+        inputTxt.send_keys(Keys.ENTER)
+
+    except Exception as e:
+        print("error: Cant find the element for input " + str(e))
 
 
 def NamefromPDF(filename, path):
@@ -65,13 +126,23 @@ if __name__ == '__main__':
 
     filename = "invoice.pdf"
     path = "C://Users//Daniyal\Downloads//"
+    websiteURL = "https://tas.driverhire.co.uk/tas/invoicing/"
+    # driver.get(websiteURL)
+    # login()
+    # go_to_page(websiteURL)
 
     # loop on sheet
     txt = NamefromPDF(filename, path)
     for index, row in enumerate(sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=3, max_col=3)):
         for cell in row:
+
             num = 'C'+str(index+2)
-            print(index, sheet[num].value, sheet['D'+str(index+2)].value)
+
+            if (sheet['D'+str(index+2)].value == None or sheet['D'+str(index+2)].value == 0):
+                print(index, sheet['D'+str(index+2)].value, sheet[num].value)
+                InputKey(sheet[num].value)
+                break
+
             # if index == 86:
             #     txt = NamefromPDF(filename, path)
             #     print(txt)
