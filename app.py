@@ -20,11 +20,11 @@ def resource_path(relative_path):
 
 
 driverPath = resource_path('I://clients//chromedriver.exe')
-# driver = webdriver.Chrome(driverPath)
+driver = webdriver.Chrome(driverPath)
 
-# driver.maximize_window()
+driver.maximize_window()
 
-# driver.implicitly_wait(10)
+driver.implicitly_wait(10)
 
 # Login
 
@@ -59,6 +59,8 @@ def InputKey(key):
     try:
         inputTxt = driver.find_element_by_id(
             "ctl00_ctl00_c_c__txtInvoiceRef__t")
+        # clear inputTxt
+        inputTxt.clear()
         inputTxt.send_keys(key)
         inputTxt.send_keys(Keys.ENTER)
 
@@ -68,8 +70,8 @@ def InputKey(key):
 
 def DownloadPDF():
     try:
-    driver.find_element_by_id(
-        "ctl00_ctl00_c_c__repeaterCustomers_ctl00__btnDownload").click()
+        driver.find_element_by_id(
+            "ctl00_ctl00_c_c__repeaterCustomers_ctl00__btnDownload").click()
     except Exception as e:
         print("error: cant downlaod the file something went wrong..." + str(e))
 
@@ -135,9 +137,9 @@ if __name__ == '__main__':
     filename = "invoice.pdf"
     path = "C://Users//Daniyal\Downloads//"
     websiteURL = "https://tas.driverhire.co.uk/tas/invoicing/"
-    # driver.get(websiteURL)
-    # login()
-    # go_to_page(websiteURL)
+    driver.get(websiteURL)
+    login()
+    go_to_page(websiteURL)
 
     # loop on sheet
     txt = NamefromPDF(filename, path)
@@ -149,13 +151,13 @@ if __name__ == '__main__':
             if (sheet['D'+str(index+2)].value == None or sheet['D'+str(index+2)].value == 0):
                 print(index, sheet['D'+str(index+2)].value, sheet[num].value)
                 InputKey(sheet[num].value)
-                break
+                source_file.save('data.xlsx')
+                txt = NamefromPDF(filename, path)
+                sheet['D'+str(index+2)].value = txt
+                source_file.save('data.xlsx')
 
             # if index == 86:
-            #     txt = NamefromPDF(filename, path)
             #     print(txt)
-            #     sheet['D'+str(index+2)].value = txt
     # iterate on pair keys and values with index
-    source_file.save('data.xlsx')
     print(txt)
     moveFile(filename, path)
