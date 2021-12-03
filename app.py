@@ -66,6 +66,14 @@ def InputKey(key):
         print("error: Cant find the element for input " + str(e))
 
 
+def DownloadPDF():
+    try:
+    driver.find_element_by_id(
+        "ctl00_ctl00_c_c__repeaterCustomers_ctl00__btnDownload").click()
+    except Exception as e:
+        print("error: cant downlaod the file something went wrong..." + str(e))
+
+
 def NamefromPDF(filename, path):
 
     # creating a pdf file object
