@@ -19,7 +19,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
-driverPath = resource_path('I://clients//chromedriver.exe')
+driverPath = resource_path('chromedriver.exe')
 driver = webdriver.Chrome(driverPath)
 
 driver.maximize_window()
@@ -68,12 +68,14 @@ def InputKey(key):
         print("error: Cant find the element for input " + str(e))
 
 
-def DownloadPDF():
+def DownloadPDF(url):
     try:
         driver.find_element_by_id(
             "ctl00_ctl00_c_c__repeaterCustomers_ctl00__btnDownload").click()
     except Exception as e:
         print("error: cant downlaod the file something went wrong..." + str(e))
+    finally:
+        driver.get(url)
 
 
 def NamefromPDF(filename, path):
@@ -93,7 +95,21 @@ def NamefromPDF(filename, path):
     txt = pageObj.extractText()
     list_txt = txt.split('\n')
     # split txt with new line
-    main_text = list_txt[-7]
+    if filename == "CreditNote.pdf":
+        print("info : its CreditNote.pdf....")
+        main_text = list_txt[31]
+    else:
+        main_text = list_txt[-7]
+
+    if main_text == "Account No. ":
+        main_text = list_txt[61]
+    elif main_text == "AY":
+        main_text = list_txt[-6]
+    elif main_text == "Modules:":
+        main_text = list_txt[-8]
+    else:
+        main_text = list_txt[-7]
+
     # closing the pdf file object
     pdfFileObj.close()
     return main_text
@@ -135,14 +151,17 @@ if __name__ == '__main__':
     sheet = source_file["Sheet2"]
 
     filename = "invoice.pdf"
-    path = "C://Users//Daniyal\Downloads//"
+
+    path = "C://Users//dlaing//Downloads//"
     websiteURL = "https://tas.driverhire.co.uk/tas/invoicing/"
     driver.get(websiteURL)
     login()
     go_to_page(websiteURL)
+    if os.path.exists(path+filename):
+        print("info : invoice.pdf already exists moving to folder...")
+        moveFile(filename, path)
 
     # loop on sheet
-    txt = NamefromPDF(filename, path)
     for index, row in enumerate(sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=3, max_col=3)):
         for cell in row:
 
@@ -150,14 +169,34 @@ if __name__ == '__main__':
 
             if (sheet['D'+str(index+2)].value == None or sheet['D'+str(index+2)].value == 0):
                 print(index, sheet['D'+str(index+2)].value, sheet[num].value)
-                InputKey(sheet[num].value)
-                source_file.save('data.xlsx')
-                txt = NamefromPDF(filename, path)
-                sheet['D'+str(index+2)].value = txt
-                source_file.save('data.xlsx')
 
-            # if index == 86:
-            #     print(txt)
+                try:
+                    InputKey(sheet[num].value)
+                    driver.implicitly_wait(15)
+                    DownloadPDF(websiteURL)
+                    time.sleep(5)
+                    print(filename)
+                    if os.path.exists(path+filename):
+                        print("info : invoice.pdf is in the path")
+
+                    else:
+                        print(
+                            "info : invoice.pdf isn't in the path going for CreditNote.pdf")
+                        filename = 'CreditNote.pdf'
+
+                    txt = NamefromPDF(filename, path)
+
+                    print(txt)
+                    time.sleep(5)
+                    sheet['D'+str(index+2)].value = txt
+                    source_file.save('data.xlsx')
+                    try:
+                        moveFile(filename, path)
+                    except Exception as e:
+                        print("error: cant move to folder.. or " + str(e))
+
+                except Exception as e:
+                    print("error: something went wrong while inputing key..." + str(e))
+                    continue
     # iterate on pair keys and values with index
-    print(txt)
-    moveFile(filename, path)
+print("success: Completed...")
