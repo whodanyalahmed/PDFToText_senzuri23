@@ -24,7 +24,7 @@ driver = webdriver.Chrome(driverPath)
 
 driver.maximize_window()
 
-driver.implicitly_wait(10)
+driver.implicitly_wait(6)
 
 # Login
 
@@ -97,18 +97,26 @@ def NamefromPDF(filename, path):
     # split txt with new line
     if filename == "CreditNote.pdf":
         print("info : its CreditNote.pdf....")
-        main_text = list_txt[31]
+        main_text = list_txt[30]
     else:
         main_text = list_txt[-7]
 
     if main_text == "Account No. ":
         main_text = list_txt[61]
+        if main_text == "Modules:":
+            main_text = list_txt[60]
     elif main_text == "AY":
         main_text = list_txt[-6]
     elif main_text == "Modules:":
         main_text = list_txt[-8]
     else:
-        main_text = list_txt[-7]
+
+        try:
+
+            main_text = list_txt[list_txt.index("Modules:")-1]
+        except Exception as e:
+            print("info : Modules string is not in the list.. " + str(e))
+            main_text = list_txt[-7]
 
     # closing the pdf file object
     pdfFileObj.close()
@@ -137,17 +145,12 @@ def moveFile(filename, path):
     print('success : successfully moved ' + newName + ' file to done folder')
 
 
-def get_column_values(sheet, column):
-    values = []
-    for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=column, max_col=column):
-        for cell in row:
-            values.append(cell.value)
-    return values
-# set column value
-
-
 if __name__ == '__main__':
-    source_file = load_workbook('data.xlsx', data_only=True)
+    # File name here
+    excelFile = "data.xlsx"
+
+    source_file = load_workbook(excelFile, data_only=True)
+    # Sheet name here
     sheet = source_file["Sheet2"]
 
     filename = "invoice.pdf"
@@ -157,13 +160,16 @@ if __name__ == '__main__':
     driver.get(websiteURL)
     login()
     go_to_page(websiteURL)
-    if os.path.exists(path+filename):
+    filename2 = "CreditNote.pdf"
+    if os.path.exists(path+filename) or os.path.exists(path+filename2):
         print("info : invoice.pdf already exists moving to folder...")
         moveFile(filename, path)
+        moveFile(filename2, path)
 
     # loop on sheet
     for index, row in enumerate(sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=3, max_col=3)):
         for cell in row:
+            filename = "invoice.pdf"
 
             num = 'C'+str(index+2)
 
@@ -172,24 +178,28 @@ if __name__ == '__main__':
 
                 try:
                     InputKey(sheet[num].value)
-                    driver.implicitly_wait(15)
+                    driver.implicitly_wait(5)
                     DownloadPDF(websiteURL)
-                    time.sleep(5)
+                    time.sleep(3)
                     print(filename)
                     if os.path.exists(path+filename):
                         print("info : invoice.pdf is in the path")
 
                     else:
-                        print(
-                            "info : invoice.pdf isn't in the path going for CreditNote.pdf")
-                        filename = 'CreditNote.pdf'
+                        filename = "CreditNote.pdf"
+                        print("info : invoice.pdf is not there trying CreditNote.pdf")
 
-                    txt = NamefromPDF(filename, path)
+                    try:
+                        txt = NamefromPDF(filename, path)
+
+                    except Exception as e:
+                        print("info : can't find text or pdf...")
+                        continue
 
                     print(txt)
-                    time.sleep(5)
                     sheet['D'+str(index+2)].value = txt
-                    source_file.save('data.xlsx')
+                    source_file.save(excelFile
+                                     )
                     try:
                         moveFile(filename, path)
                     except Exception as e:
